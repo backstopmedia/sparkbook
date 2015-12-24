@@ -6,6 +6,8 @@ What's in this chapter?
 - Providing the area where Spark can be applied to promote your business by using your existing data
 - Catch up the future works of Spark
 
+The following code samples have been used in this chapter to describe in a more comprehensive way the topics listed above.
+
 1. Data Warehousing
 
 ```bash
