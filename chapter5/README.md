@@ -37,7 +37,7 @@ What’s in this chapter?
 ### You can enable the given pool as follows:
 
 ~~~
-// assuming the Spark Context is `sc`
+// assuming the Spark Context is sc
 sc.setLocalProperty(“spark.scheduler.pool”, “high-priority”)
 ...
 <work for the high priority pool>
@@ -107,7 +107,7 @@ model2.transform(test)
 
 ### Parallel scheduling in Spark
 
-Let's take the same example and apply the technique of parallel scheduling within a Spark application. Here we will construct multiple `SparkContext` objects and call them asynchronously to train each model simultaneously:
+1. Let's take the same example and apply the technique of parallel scheduling within a Spark application. Here we will construct multiple `SparkContext` objects and call them asynchronously to train each model simultaneously:
 
 ~~~
 import org.apache.spark.{SparkConf, SparkContext}
