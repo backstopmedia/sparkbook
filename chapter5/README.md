@@ -10,6 +10,7 @@ What’s in this chapter?
 
 ### Fair Scheduler XML Configuration file:
 
+~~~
 <?xml version=”1.0”?>
 <allocations>
   <!-- high priority queue -->
@@ -31,9 +32,11 @@ What’s in this chapter?
     <schedulingMode>FIFO</schedulingMode>
   </pool>
 </allocations>
+~~~
 
 ### You can enable the given pool as follows:
 
+~~~
 // assuming the Spark Context is `sc`
 sc.setLocalProperty(“spark.scheduler.pool”, “high-priority”)
 ...
@@ -45,11 +48,13 @@ sc.setLocalProperty(“spark.scheduler.pool”, “low-priority”)
 ...
 // reset the pool back to the default
 sc.setLocalProperty(“spark.scheduler.pool”, null)
+~~~
 
 ### A scenario with a time-critical machine learning application. 
 
 1. The model for this application must be re-trained every ten minutes and redeployed. It leverages an ensemble model technique, roughly meaning that the end model is built on a culmination of a few models. Understanding some general parallelism concepts we realize that, because this is an ensemble model, we can train each sub-model independently of each other. Here are the general steps to look at before we implement parallel scheduling:
 
+~~~
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
@@ -98,11 +103,13 @@ model2.transform(test)
    .foreach { case Row(features: Vector, label: Double, prob: Vector, prediction: Double) =>
      println(s”Features: $features, Label: $label => Probability: $prob, Prediction: $prediction”)
    }
+~~~
 
 ### Parallel scheduling in Spark
 
 Let's take the same example and apply the technique of parallel scheduling within a Spark application. Here we will construct multiple `SparkContext` objects and call them asynchronously to train each model simultaneously:
 
+~~~
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.ml.classification.LogisticRegression
 import org.apache.spark.mllib.linalg.{Vector, Vectors}
@@ -154,11 +161,13 @@ val modelExec2 = new Thread(new Runnable {
 
 modelExec1.start()
 modelExec2.start()
+~~~
 
 ### Resilient Distributed Datasets 
 
 1. Because an RDD is only realized on certain commands it needs to track the lineage of commands placed upon it to retrace in the case of an error. An example of a lineage would be the following code:
 
+~~~
 scala> val rdd = sc.textFile("<some-text-file>")
 rdd: org.apache.spark.rdd.RDD[String] = MapPartitionsRDD[1] at textFile at <console>:21
 
@@ -188,9 +197,11 @@ scala> rdd.collect
 res1: Array[String] = Array(1 2 3 4, 2 3 4 5, 3 4 5 6, 4 5 6 7, 5 6 7 8, 6 7 8 9, 7 8 9 0)
 
 scala> rdd.saveAsTextFile("out.txt")
+~~~
 
 3. Additional to their ability to track lineage RDD’s can checkpoint that lineage to disk. This acts as a metaphorical “save point” for the data making it much easier to recompute failures at the task level which is especially vital for long running Spark applications or applications working iteratively through large amounts of data. To gain the benefits of checkpointing refer to this code sample:
 
+~~~
 scala> sc.setCheckpointDir("checkpoint/")
 
 scala> val rdd = sc.textFile("sample.txt")
@@ -219,9 +230,11 @@ warning: there were 1 deprecation warning(s); re-run with -deprecation for detai
 
 $ ls checkpoint/
 29f75822-99dd-47ba-b9a4-5a36165e8885
+~~~
 
 4. One final piece of resiliency baked into the RDD paradigm is that it can seamlessly fall back to leveraging the disk for partitions that are too large to fit into memory. You can easily set this on your RDD with code such as: 
 
+~~~
 scala> import org.apache.spark.storage.StorageLevel
 import org.apache.spark.storage.StorageLevel
 
@@ -233,11 +246,13 @@ res13: Array[String] = Array(1 2 3 4, 2 3 4 5, 3 4 5 6, 4 5 6 7, 5 6 7 8, 6 7 8 
 
 scala> rdd.persist(StorageLevel.MEMORY_AND_DISK_SER)
 res14: rdd.type = MapPartitionsRDD[24] at textFile at <console>:24
+~~~
 
 ### RDD Persistence Reassignment
 
 1. When speaking of RDD persistence and the recommended storage it is helpful to note that odd errors can arise when attempting this for the first time – here we are discussing the issue of persistence reassignment. This can be a common issue when first dealing with RDD persistence and is one of the most common issues to fix. This is caused by an RDD having already been set with a given persistence level and then attempted to be reassigned. The following code snippet will demonstrate:
 
+~~~
 scala> import org.apache.spark.storage.StorageLevel
 import org.apache.spark.storage.StorageLevel
 
@@ -249,9 +264,11 @@ res15: rdd.type = ParallelCollectionRDD[31] at parallelize at <console>:28
 
 scala> rdd.persist(StorageLevel.MEMORY_ONLY)
 java.lang.UnsupportedOperationException: Cannot change storage level of an RDD after it was already assigned a level
+~~~
 
 2. The only resolution is to stop reassigning the persistence level or create a new RDD object with which one can assign a new persistence level to. An example is as follows:
 
+~~~
 scala> import org.apache.spark.storage.StorageLevel
 import org.apache.spark.storage.StorageLevel
 
@@ -266,11 +283,13 @@ mappedRdd: org.apache.spark.rdd.RDD[scala.collection.immutable.Set[Int]] = MapPa
 
 scala> mappedRdd.persist(StorageLevel.MEMORY_ONLY)
 res1: mappedRdd.type = MapPartitionsRDD[1] at map at <console>:24
+~~~
 
 ### Batch Versus Streaming
 
 1. To enable write-ahead logs see the following code example:
 
+~~~
 import org.apache.spark._
 import org.apache.spark.streaming._
 
@@ -281,7 +300,9 @@ val conf = SparkConf()
     .set("spark.streaming.receiver.writeAheadLog.rollingIntervalSecs", "1")
 val sc = new SparkContext(conf)
 val ssc = new StreamingContext(sc, Seconds(1))
+~~~
 
+Thank you!
 
 
 
