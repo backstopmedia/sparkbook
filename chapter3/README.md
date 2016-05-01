@@ -2,7 +2,7 @@
 
 This chapter explores several techniques to improve the performance of a Spark application covering a large set of topics:
   - Spark's execution model
-  - The way data is being shuflled across cluster
+  - The way data is being shuffled across cluster
   - Why partitioning is so important
   - Data serialization
   - Spark cache
